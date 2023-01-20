@@ -14,7 +14,7 @@ public class SGPT {
     
     // this token is for test use only!
     // please don't use it outside this library!
-    public static final String TEST_MODE = "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";
+    public static final String TEST_MODE = "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";
 	private String apiKey;
     
 	public SGPT(String apiKey) {

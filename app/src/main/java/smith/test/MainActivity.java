@@ -19,7 +19,9 @@ public class MainActivity extends AppCompatActivity {
     public void chat(View v) {
         EditText et = findViewById(R.id.et);
         
-        SGPT chat = new SGPT(SGPT.TEST_MODE);
+        String apiKey = "get it from https://beta.openai.com/account/api-keys";
+        SGPT chat = new SGPT(apiKey);
+        
         chat.chat(et.getText().toString(), new SGPT.ChatCallBack() {
             @Override public void onResponse(String response) {
                 TextView tv = findViewById(R.id.tv);

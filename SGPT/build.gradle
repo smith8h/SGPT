@@ -1,14 +1,19 @@
-apply plugin: 'com.android.library'
+plugins {
+    id 'com.android.library'
+    id 'maven-publish'
+}
+
+def artifactId = "SGPT"
+def groupId = "com.github.smith8h"
 
 android {
     namespace 'smith.lib.tools.chatgpt'
     compileSdkVersion 33
+    buildToolsVersion '33.0.2'
 
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 33
-        versionCode 1
-        versionName "1.0.0"
     }
     
     buildTypes {
@@ -16,26 +21,32 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
-        
-        debug {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
     }
-}
 
-buildscript {
-    repositories {
-        jcenter()
-        mavenCentral()
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
-    
-    dependencies {
-         
+
+    buildFeatures {
+        viewBinding true
     }
 }
 
 dependencies {
     implementation 'com.squareup.okhttp3:okhttp:5.0.0-alpha.11'
-
 }
+
+project.afterEvaluate {
+    publishing {
+        publications {
+            library(MavenPublication) {
+                setGroupId groupId
+                setArtifactId artifactId
+                version android.defaultConfig.versionName
+                artifact bundleReleaseAar
+            }
+        }
+    }
+}
+

@@ -23,6 +23,6 @@ buildCache {
     }
 }
 
-rootProject.name = "SCoverView"
+rootProject.name = "SGPT"
 include ':app'
 include ':SGPT'

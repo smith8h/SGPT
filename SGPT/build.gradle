@@ -12,7 +12,7 @@ android {
     buildToolsVersion '33.0.2'
 
     defaultConfig {
-        minSdkVersion 21
+        minSdkVersion 24
         targetSdkVersion 33
     }
     
@@ -35,6 +35,7 @@ android {
 
 dependencies {
     implementation 'com.squareup.okhttp3:okhttp:5.0.0-alpha.11'
+    implementation 'com.github.smith8h:SConnect:v3.2'
 }
 
 project.afterEvaluate {

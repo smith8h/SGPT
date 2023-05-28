@@ -1,61 +1,61 @@
 package smith.lib.tools.chatgpt;
 
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import org.json.JSONObject;
-import java.io.IOException;
+import android.app.Activity;
+import androidx.annotation.NonNull;
+import smith.lib.net.SConnect;
+import smith.lib.net.SConnectCallBack;
+import smith.lib.net.SResponse;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SGPT {
     
     private String apiKey;
+	private ChatCallBack callback;
+	private Activity activity;
     
-	public SGPT(String apiKey) {
-	    this.apiKey = apiKey;
+	@NonNull
+	public static SGPT setup(Activity activity, String token) {
+		SGPT sgpt = new SGPT();
+	    sgpt.apiKey = token;
+		sgpt.activity = activity;
+		return sgpt;
     }
 	
-	public void chat(String text, ChatCallBack chatcallback) {
-		JSONObject params = new JSONObject();
-		try{
-			params.put("prompt", text);
-			params.put("max_tokens", 4000);
-			params.put("temperature", 0.95);
-		}catch(Exception e){}
-		
-		Request req = new Request.Builder()
-		.url("https://api.openai.com/v1/engines/text-davinci-003/completions")
-		.header("Authorization", "Bearer " + apiKey)
-		.header("Content-Type", "application/json")
-		.post(RequestBody.create(MediaType.parse("application/json"), params.toString()))
-		.build();
-		
-        OkHttpClient client = new OkHttpClient();
-		client.newCall(req).enqueue(new Callback() {
-            @Override public void onResponse(Call call, Response response) throws IOException {
-			    String responseBody = response.body().string();
-                chatcallback.onResponse(parseResponse(responseBody));
-            }
-            
-            @Override public void onFailure(Call call, IOException e) {
-		    	chatcallback.onFailure("Something went wrong!");
-	    	}
-        });
+	public SGPT callback(ChatCallBack chatcallback) {
+		this.callback = chatcallback;
+		return this;
 	}
-	
-	private String parseResponse(String responseBody){
-		String text = responseBody;
-		try {
-			text = ((new JSONObject(responseBody)).getJSONArray("choices")).getJSONObject(0).getString("text");
-		} catch (Exception e) {}
-		return text.replaceAll("(?m)^[ \t]*\r?\n","");
+
+	public void chat(String message) {
+		SConnect.with(activity)
+				.params(new HashMap<String, Object>() {{
+					put("prompt", message);
+					put("max_tokens", 4000);
+					put("temperature", 0.95);
+				}}, SConnect.PARAM)
+				.url("https://api.openai.com/v1/engines/text-davinci-003/completions")
+				.headers(new HashMap<String, Object>() {{
+					put("Authorization", "Bearer " + apiKey);
+					put("Content-Type", "application/json");
+				}})
+				.callback(new SConnectCallBack() {
+					@Override
+					public void onSuccess(SResponse response, String tag, Map<String, Object> responseHeaders) {
+						SResponse.Map map = response.getMap();
+						if (map.hasKey("error")) {
+							callback.onFailure("INVALID_REQUEST_ERROR: " + map.getMap("error").getString("message"));
+						} else {
+							String rMessage = map.getArray("choices").getMap(0).getString("text");
+							callback.onResponse(rMessage.replaceAll("(?m)^[ \t]*\r?\n", ""));
+						}
+					}
+
+					@Override
+					public void onFailure(SResponse response, String tag) {
+						callback.onFailure(response.toString());
+					}
+				})
+				.post();
 	}
-    
-    public interface ChatCallBack {
-        public void onResponse(String response);
-        public void onFailure(String message);
-    }
 }
